@@ -21,7 +21,7 @@ weights_input_hidden = np.random.uniform(size=(inputLayer_neurons,hiddenLayer_ne
 weights_hidden_output = np.random.uniform(size=(hiddenLayer_neurons,outputLayer_neurons))
 
 # Training algorithm
-for _ in range(20000):
+for _ in range(40000):
     # Forward Propagation
     hidden_layer_activation = np.dot(inputs,weights_input_hidden)
     hidden_layer_output = sigmoid(hidden_layer_activation)
