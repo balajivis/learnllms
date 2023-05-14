@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Digit Recognizer</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <form id="draw-form" enctype="multipart/form-data">
+        <canvas id="myCanvas" width="400" height="400" style="border:1px solid #d3d3d3; background: black;">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+        <button type="button" id="predict-button">Predict</button>
+        <button type="button" id="clear-button">Clear</button>
+    </form>
+
+    <form id="upload-form">
+        <input type="file" id="file" name="file"><br><br>
+        <input type="submit" value="Upload">
+    </form>
+
+    <p id="prediction"></p>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+    <script>
+        //For managing the canvas
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+        
+        // Set the color to white
+        ctx.strokeStyle = "white";
+        
+        // Set the background to black
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        var painting = false;
+        
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+        
+        function finishedPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+        
+        function draw(e) {
+            if (!painting) return;
+            ctx.lineWidth = 10;
+            ctx.lineCap = "round";
+            
+            ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        }
+        
+        canvas.addEventListener("mousedown", startPosition);
+        canvas.addEventListener("mouseup", finishedPosition);
+        canvas.addEventListener("mousemove", draw);
+    </script>
+
+    <script>
+        //File upload
+        $('#upload-form').on('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData();
+            formData.append('file', $('#file')[0].files[0]);
+
+            $.ajax({
+                url: '/upload',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    alert(response);
+                },
+                error: function(response) {
+                    alert('Upload failed');
+                }
+            });
+        });
+    </script>
+
+    <script>
+        //Mouse based
+        document.getElementById('clear-button').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('predict-button').addEventListener('click', () => {
+            var imageData = canvas.toDataURL();
+            var form = document.getElementById('draw-form');
+            var formData = new FormData(form);
+            formData.append('imageData', imageData);
+            $.ajax({
+                url: '/predict',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    document.getElementById('prediction').innerText = 'Predicted Digit: ' + response;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
